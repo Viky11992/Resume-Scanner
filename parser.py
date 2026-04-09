@@ -12,17 +12,26 @@ from pdfminer.high_level import extract_text as pdf_extract
 from docx import Document
 
 
-@st.cache_resource(show_spinner=False)
+@st.cache_resource(show_spinner="Loading AI models...")
 def get_nlp_model():
     """
     Load spaCy model with caching to avoid reloading on every rerun.
+    Automatically downloads the model if it's missing (e.g., on first deployment).
 
     Returns:
         spacy.Language: Loaded spaCy NLP model.
     """
     import spacy
+    import subprocess
+    import sys
 
-    return spacy.load("en_core_web_sm")
+    try:
+        return spacy.load("en_core_web_sm")
+    except OSError:
+        # Model not found, downloading it automatically
+        print("Downloading spaCy model 'en_core_web_sm'...")
+        subprocess.check_call([sys.executable, "-m", "spacy", "download", "en_core_web_sm"])
+        return spacy.load("en_core_web_sm")
 
 
 def extract_text_from_pdf(file_path):
